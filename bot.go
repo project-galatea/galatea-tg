@@ -25,19 +25,22 @@ func startBot(token string) {
 		log.Printf("[%s] %s", update.Message.From.UserName, update.Message.Text)
 
 		if update.Message.IsCommand() {
-			parseCommand(update.Message)
+			parseCommand(bot, update.Message)
 		}
-
-		msg := tgbotapi.NewMessage(update.Message.Chat.ID, update.Message.Text)
-		msg.ReplyToMessageID = update.Message.MessageID
-
-		bot.Send(msg)
 	}
 }
 
-func parseCommand(msg tgbotapi.Message) {
+func parseCommand(bot *tgbotapi.BotAPI, msg *tgbotapi.Message) {
+	var sendStr string
 	switch msg.Text {
 	case "/start":
-		msg := tgbotapi.NewMessage(msg.Chat.ID, "")
+		sendStr = "<b>Welcome to Project Galatea</b>"
+	case "/help":
+		sendStr = "<b>Help</b>"
+	default:
+		sendStr = "<b>Error: Unknown Commend</b>"
 	}
+	newMsg := tgbotapi.NewMessage(msg.Chat.ID, sendStr)
+	newMsg.ParseMode = "HTML"
+	bot.Send(newMsg)
 }

@@ -10,10 +10,15 @@ LDFLAGS += -X \"main.BotToken=$(BOT_TOKEN)\"
 
 .PHONY: build clean
 
-build:
+setup:
+ifndef BOT_TOKEN
+	$(error BOT_TOKEN is not set.)
+endif
+
+build: setup
 	go build -ldflags "$(LDFLAGS)"
 
-install:
+install: setup
 	go install -ldflags "$(LDFLAGS)"
 
 clean:
