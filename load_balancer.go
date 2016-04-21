@@ -13,7 +13,7 @@ import (
 )
 
 type Chat struct {
-	chatId int
+	chatId int64
 }
 
 type Follower struct {
@@ -28,19 +28,34 @@ var followersLock = &sync.Mutex{}
 
 // TODO: Make this more of an algorithm and less of a guess
 func connectNewChat(chatid int64) error {
+
+	err, fl := selectBestFollower()
+	if err != nil {
+		return err
+	}
+
+	followersLock.Lock()
+
+	chatsToFollower[chatid] = fl
+
+	fl.Chats = append(fl.Chats, Chat{chatId: chatid})
+
+	followersLock.Unlock()
+
+	return nil
+}
+
+func selectBestFollower() (error, *Follower) {
 	followersLock.Lock()
 	defer followersLock.Unlock()
 
 	if len(followerList) == 0 {
-		return errors.New("No followers to connect to")
+		return errors.New("No followers to connect to"), nil
 	}
 
 	rand.Seed(time.Now().Unix())
 	setFollower := followerList[rand.Intn(len(followerList))]
-
-	chatsToFollower[chatid] = setFollower
-
-	return nil
+	return nil, setFollower
 }
 
 func ConnectNewFollower(ip string) {
@@ -77,6 +92,17 @@ func handleConn(follower *Follower) {
 }
 
 func onConnClose(follower *Follower) {
+	for i, fl := range followerList {
+		if fl.Conn.LocalAddr() == follower.Conn.LocalAddr() {
+			followerList = append(followerList[:i], followerList[i+1:]...)
+		}
+	}
+	for _, chat := range follower.Chats {
+		err := connectNewChat(chat.chatId)
+		if err != nil {
+			return
+		}
+	}
 }
 
 func GotNewMessage(msg *tgbotapi.Message) error {
