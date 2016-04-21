@@ -32,7 +32,7 @@ func startBot(token string) {
 		} else {
 			err := GotNewMessage(update.Message)
 			if err != nil {
-				log.Println(err)
+				log.Printf("ERROR: %s", err)
 			}
 		}
 	}
