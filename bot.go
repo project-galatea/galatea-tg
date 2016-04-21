@@ -6,8 +6,11 @@ import (
 	"gopkg.in/telegram-bot-api.v4"
 )
 
+var bot *tgbotapi.BotAPI
+
 func startBot(token string) {
-	bot, err := tgbotapi.NewBotAPI(token)
+	var err error
+	bot, err = tgbotapi.NewBotAPI(token)
 	if err != nil {
 		log.Panic(err)
 	}
@@ -25,12 +28,14 @@ func startBot(token string) {
 		log.Printf("[%s] %s", update.Message.From.UserName, update.Message.Text)
 
 		if update.Message.IsCommand() {
-			parseCommand(bot, update.Message)
+			parseCommand(update.Message)
+		} else {
+			GotNewMessage(update.Message)
 		}
 	}
 }
 
-func parseCommand(bot *tgbotapi.BotAPI, msg *tgbotapi.Message) {
+func parseCommand(msg *tgbotapi.Message) {
 	var sendStr string
 	switch msg.Text {
 	case "/start":
@@ -42,5 +47,10 @@ func parseCommand(bot *tgbotapi.BotAPI, msg *tgbotapi.Message) {
 	}
 	newMsg := tgbotapi.NewMessage(msg.Chat.ID, sendStr)
 	newMsg.ParseMode = "HTML"
+	bot.Send(newMsg)
+}
+
+func SendMessage(text string, chatId int64) {
+	newMsg := tgbotapi.NewMessage(chatId, text)
 	bot.Send(newMsg)
 }

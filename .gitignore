@@ -27,3 +27,4 @@ _testmain.go
 push.sh
 galatea-tg
 .DS_Store
+*.pb.go

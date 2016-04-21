@@ -15,10 +15,13 @@ ifndef BOT_TOKEN
 	$(error BOT_TOKEN is not set.)
 endif
 
-build: setup
+compile:
+	protoc --go_out=. *.proto
+
+build: setup compile
 	go build -ldflags "$(LDFLAGS)"
 
-install: setup
+install: setup compile
 	go install -ldflags "$(LDFLAGS)"
 
 clean:
