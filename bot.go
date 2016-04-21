@@ -30,7 +30,10 @@ func startBot(token string) {
 		if update.Message.IsCommand() {
 			parseCommand(update.Message)
 		} else {
-			GotNewMessage(update.Message)
+			err := GotNewMessage(update.Message)
+			if err != nil {
+				log.Println(err)
+			}
 		}
 	}
 }

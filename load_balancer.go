@@ -78,18 +78,21 @@ func handleConn(follower *Follower) {
 func onConnClose(follower *Follower) {
 }
 
-func GotNewMessage(msg *tgbotapi.Message) {
+func GotNewMessage(msg *tgbotapi.Message) error {
 	_, ok := chatsToFollower[msg.Chat.ID]
 	if !ok {
 		err := connectNewChat(msg.Chat.ID)
 		if err != nil {
-			return
+			return err
 		}
 	}
-	sendNewMessageToAI(msg.Text, int64(msg.From.ID), msg.Chat.ID)
+
+	err := sendNewMessageToAI(msg.Text, int64(msg.From.ID), msg.Chat.ID)
+
+	return err
 }
 
-func sendNewMessageToAI(text string, userid int64, chatid int64) {
+func sendNewMessageToAI(text string, userid int64, chatid int64) error {
 	msg := &Message{
 		Text:   proto.String(text),
 		UserId: proto.Int64(userid),
@@ -97,8 +100,10 @@ func sendNewMessageToAI(text string, userid int64, chatid int64) {
 	}
 	marshaledMsg, err := proto.Marshal(msg)
 	if err != nil {
-		return
+		return err
 	}
 	follower := chatsToFollower[chatid]
 	follower.Conn.Write(marshaledMsg)
+
+	return nil
 }
