@@ -26,6 +26,7 @@ var followerList []*Follower
 var chatsToFollower = make(map[int64]*Follower)
 var followersLock = &sync.Mutex{}
 
+// TODO: Make this more of an algorithm and less of a guess
 func connectNewChat(chatid int64) error {
 	followersLock.Lock()
 	defer followersLock.Unlock()
