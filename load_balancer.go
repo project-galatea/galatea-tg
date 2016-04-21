@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"math/rand"
 	"net"
 	"sync"
@@ -25,12 +26,20 @@ var followerList []*Follower
 var chatsToFollower = make(map[int64]*Follower)
 var followersLock = &sync.Mutex{}
 
-func connectNewChat(chatid int64) {
+func connectNewChat(chatid int64) error {
 	followersLock.Lock()
+	defer followersLock.Unlock()
+
+	if len(followerList) == 0 {
+		return errors.New("No followers to connect to")
+	}
+
 	rand.Seed(time.Now().Unix())
 	setFollower := followerList[rand.Intn(len(followerList))]
+
 	chatsToFollower[chatid] = setFollower
-	followersLock.Unlock()
+
+	return nil
 }
 
 func ConnectNewFollower(ip string) {
@@ -72,7 +81,10 @@ func onConnClose(follower *Follower) {
 func GotNewMessage(msg *tgbotapi.Message) {
 	_, ok := chatsToFollower[msg.Chat.ID]
 	if !ok {
-		connectNewChat(msg.Chat.ID)
+		err := connectNewChat(msg.Chat.ID)
+		if err != nil {
+			return
+		}
 	}
 	sendNewMessageToAI(msg.Text, int64(msg.From.ID), msg.Chat.ID)
 }
