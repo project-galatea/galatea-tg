@@ -16,7 +16,7 @@ ifndef BOT_TOKEN
 endif
 
 compile:
-	protoc --go_out=. *.proto
+	protoc -I=galatea-ipc --go_out=. galatea-ipc/*.proto
 
 build: setup compile
 	go build -ldflags "$(LDFLAGS)"
