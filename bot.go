@@ -25,7 +25,7 @@ func startBot(token string) {
 	updates, err := bot.GetUpdatesChan(u)
 
 	for update := range updates {
-		log.Printf("[%s] %s", update.Message.From.UserName, update.Message.Text)
+		log.Printf("[%s] %s", update.Message.From.FirstName, update.Message.Text)
 
 		if update.Message.IsCommand() {
 			parseCommand(update.Message)

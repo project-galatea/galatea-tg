@@ -2,6 +2,7 @@ package main
 
 import (
 	"errors"
+	"fmt"
 	"math/rand"
 	"net"
 	"sync"
@@ -19,6 +20,7 @@ type Chat struct {
 type Follower struct {
 	Chats []Chat
 	Conn  net.Conn
+	Speed int64
 }
 
 var followerList []*Follower
@@ -26,7 +28,6 @@ var followerList []*Follower
 var chatsToFollower = make(map[int64]*Follower)
 var followersLock = &sync.Mutex{}
 
-// TODO: Make this more of an algorithm and less of a guess
 func connectNewChat(chatid int64) error {
 
 	err, fl := selectBestFollower()
@@ -45,6 +46,7 @@ func connectNewChat(chatid int64) error {
 	return nil
 }
 
+// TODO: Make this more of an algorithm and less of a guess
 func selectBestFollower() (error, *Follower) {
 	followersLock.Lock()
 	defer followersLock.Unlock()
@@ -76,6 +78,25 @@ func handleConn(follower *Follower) {
 	defer follower.Conn.Close()
 	defer onConnClose(follower)
 
+	helloMsg := &Hello{
+		Response: proto.Bool(false),
+	}
+	marshaledHello, err := proto.Marshal(helloMsg)
+	if err == nil {
+		startTime := time.Now()
+		follower.Conn.Write(marshaledHello)
+		recHello := &Hello{}
+		data := make([]byte, 4096)
+		n, err := follower.Conn.Read(data)
+		if err == nil {
+			err = proto.Unmarshal(data[0:n], recHello)
+			if err == nil && *recHello.Response {
+				endTime := time.Now()
+				follower.Speed = endTime.UnixNano() - startTime.UnixNano()
+			}
+		}
+	}
+
 	for {
 		inMsg := &Message{}
 		data := make([]byte, 4096)
@@ -87,6 +108,8 @@ func handleConn(follower *Follower) {
 		if err != nil {
 			return
 		}
+		follower.Speed = time.Now().UnixNano() - *inMsg.Time
+		fmt.Println("Speed is now:", follower.Speed)
 		SendMessage(*inMsg.Text, *inMsg.ChatId)
 	}
 }
@@ -124,6 +147,7 @@ func sendNewMessageToAI(text string, userid int64, chatid int64) error {
 		Text:   proto.String(text),
 		UserId: proto.Int64(userid),
 		ChatId: proto.Int64(chatid),
+		Time:   proto.Int64(time.Now().UnixNano()),
 	}
 	marshaledMsg, err := proto.Marshal(msg)
 	if err != nil {
