@@ -1,0 +1,11 @@
+language: go
+
+go:
+  - 1.6
+
+before_install:
+  - apt-get update
+  - apt-get -y install protobuf-compiler
+  - go get -u github.com/golang/protobuf/proto && go get -u github.com/golang/protobuf/protoc-gen-go
+
+install:
