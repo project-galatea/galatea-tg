@@ -27,10 +27,15 @@ func startBot(token string) {
 	for update := range updates {
 		log.Printf("[%s] %s", update.Message.From.FirstName, update.Message.Text)
 
-		if update.Message.IsCommand() {
+		if update.Message.IsCommand() && update.Message.Text == "/speak" {
+			err := GotNewMessage(update.Message, true)
+			if err != nil {
+				log.Printf("ERROR: %s", err)
+			}
+		} else if update.Message.IsCommand() {
 			parseCommand(update.Message)
 		} else {
-			err := GotNewMessage(update.Message)
+			err := GotNewMessage(update.Message, update.Message.Chat.IsPrivate())
 			if err != nil {
 				log.Printf("ERROR: %s", err)
 			}

@@ -1,5 +1,5 @@
 # These are the values we want to pass for Version and BuildTime
-VERSION=0.0.1
+VERSION=0.2.1
 BUILD_TIME=$(shell date +%s)
 
 # Setup the -ldflags option for go build here, interpolate the variable values
@@ -22,6 +22,7 @@ build: setup compile
 	go build -ldflags "$(LDFLAGS)"
 
 install: setup compile
+	go get -d ./...
 	go install -ldflags "$(LDFLAGS)"
 
 clean:

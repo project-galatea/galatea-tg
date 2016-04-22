@@ -128,7 +128,7 @@ func onConnClose(follower *Follower) {
 	}
 }
 
-func GotNewMessage(msg *tgbotapi.Message) error {
+func GotNewMessage(msg *tgbotapi.Message, shouldRespond bool) error {
 	_, ok := chatsToFollower[msg.Chat.ID]
 	if !ok {
 		err := connectNewChat(msg.Chat.ID)
@@ -137,17 +137,18 @@ func GotNewMessage(msg *tgbotapi.Message) error {
 		}
 	}
 
-	err := sendNewMessageToAI(msg.Text, int64(msg.From.ID), msg.Chat.ID)
+	err := sendNewMessageToAI(msg.Text, int64(msg.From.ID), msg.Chat.ID, shouldRespond)
 
 	return err
 }
 
-func sendNewMessageToAI(text string, userid int64, chatid int64) error {
+func sendNewMessageToAI(text string, userid int64, chatid int64, shouldRespond bool) error {
 	msg := &Message{
-		Text:   proto.String(text),
-		UserId: proto.Int64(userid),
-		ChatId: proto.Int64(chatid),
-		Time:   proto.Int64(time.Now().UnixNano()),
+		Text:    proto.String(text),
+		UserId:  proto.Int64(userid),
+		ChatId:  proto.Int64(chatid),
+		Respond: proto.Bool(shouldRespond),
+		Time:    proto.Int64(time.Now().UnixNano()),
 	}
 	marshaledMsg, err := proto.Marshal(msg)
 	if err != nil {
