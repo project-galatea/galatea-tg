@@ -18,7 +18,7 @@ func main() {
 	app := cli.NewApp()
 
 	app.Name = "Galatea Telegram"
-	app.Usage = "The main server, load balancer, and telegram interface for the Galatea Project"
+	app.Usage = "The main server, load balancer, and Telegram interface for the Galatea Project"
 
 	app.Authors = []cli.Author{
 		cli.Author{
